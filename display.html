@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/styling.css">
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Product Details</title>
+</head>
+<body>
+    <header class="l-header">
+        <nav class="nav bd-grid">
+            <div class="container"> <img src="assets/img/brand.png" alt="logo" class="logo"></div>
+        </nav>
+    </header>
+
+    <main class="l-main">
+        <section class="detail section" id="detail">
+            <div class="detail__container bd-grid">
+                <div class="detail__img">
+                    <img id="product-image" src="" alt="">
+                </div>
+                <div class="detail__data">
+                    <h1 id="product-title"></h1>
+                    <p id="product-price"></p>
+                    <div class="detail__description">
+                        <p id="product-description"></p>
+                    </div>
+                    <div class="detail__delivery">
+                        <p id="product-delivery">Delivery fees and procedures will be displayed here.</p>
+                    </div>
+                    <div class="detail__actions">
+                        <div class="detail__quantity">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" id="quantity" name="quantity" value="1" min="1">
+                        </div>
+                        <button id="buy-now-button" class="button3">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        </footer>
+
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script src="assets/js/product_details.js"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
+</body>
+</html>
