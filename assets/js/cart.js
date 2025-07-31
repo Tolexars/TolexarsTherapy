@@ -1,3 +1,17 @@
+var config = {
+    apiKey: "AIzaSyAuT-RlMl5g4m96V3DtUWGFV6ym7YnMXt8",
+    authDomain: "tolexars-ac868.firebaseapp.com",
+    databaseURL: "https://tolexars-ac868-default-rtdb.firebaseio.com",
+    projectId: "tolexars-ac868",
+    storageBucket: "tolexars-ac868.appspot.com",
+    messagingSenderId: "148559800786"
+  };
+  firebase.initializeApp(config);
+		
+		//initialize your firebase
+		var database = firebase.database();
+
+
 /*===== MENU SHOW =====*/
 const showMenu = (toggleId, navId) =>{
     const toggle = document.getElementById(toggleId),
@@ -21,8 +35,6 @@ function linkAction(){
 }
 navLink.forEach(n => n.addEventListener('click', linkAction))
 
-
-
 /*==================== SCROLL SECTIONS ACTIVE LINK ====================*/
 const sections = document.querySelectorAll('section[id]')
 
@@ -36,9 +48,13 @@ const scrollActive = () =>{
               sectionsClass = document.querySelector('.nav__menu a[href*=' + sectionId + ']')
 
         if(scrollDown > sectionTop && scrollDown <= sectionTop + sectionHeight){
-            sectionsClass.classList.add('active-link')
+            if (sectionsClass) { // Check if sectionsClass exists (is not null)
+                sectionsClass.classList.add('active-link')
+            }
         }else{
-            sectionsClass.classList.remove('active-link')
+            if (sectionsClass) { // Check if sectionsClass exists (is not null)
+                sectionsClass.classList.remove('active-link')
+            }
         }
     })
 }
@@ -53,15 +69,160 @@ const sr = ScrollReveal({
 //     reset: true
 });
 
-sr.reveal('.home__data, .about__img, .home2__img, .skills__subtitle, .skills__text',{});
-sr.reveal('.home__img, .about__subtitle, .about__text, .skills__img',{delay: 400});
-sr.reveal('.home__social-icon',{ interval: 200});
-sr.reveal('.skills__data, .work__img, .contact__input',{interval: 200});
-sr.reveal('.testimonials__container', { origin: 'bottom' }); // Animate testimonials from bottom
-sr.reveal('.marketplace__container', { delay: 300, origin: 'bottom' }); // Animate marketplace from bottom with a delay
+sr.reveal('.home__data', {});
+sr.reveal('.home__data .button', { delay: 300, origin: 'bottom' });
+sr.reveal('.contact__container', { origin: 'right' });
+sr.reveal('.work__container', { origin: 'left' });
 
 
- // sticky threshold
+//create a variable to hold our orders list from firebase
+var firebaseOrdersCollection = database.ref().child('trends');
+
+//this function is called when the submit button is clicked (not directly related to animation)
+function submitOrder() {
+    //Grab order data from the form
+    var trends = {
+        title: $('#titleField').val(),
+        push: $('#pushField').val(),
+        img: $('#imgField').val() // Assuming you have an image URL field
+    };
+
+    //'push' (aka add) your order to the existing list
+    firebaseOrdersCollection.push(trends);
+};
+
+// Function to initialize ScrollReveal for Firebase images (gallery.html - trends)
+function animateTrendsImages() {
+    const trendsImages = document.querySelectorAll('.work2__container .work__container2');
+    trendsImages.forEach((item, index) => {
+        sr.reveal(item, { delay: 200 * (index + 1), origin: 'bottom' }); // Animate each container
+    });
+}
+
+// Function to initialize ScrollReveal for team members (team.html - pros)
+function animateTeamMembers() {
+    const teamMembers = document.querySelectorAll('.work4__container .work__container4');
+    teamMembers.forEach((member, index) => {
+        sr.reveal(member, { delay: 200 * (index + 1), origin: 'bottom' });
+    });
+}
+
+// Function to initialize ScrollReveal for products (gallery.html - products)
+function animateProducts() {
+    const products = document.querySelectorAll('.work3__container .work__container');
+    products.forEach((product, index) => {
+        sr.reveal(product, { delay: 200 * (index + 1), origin: 'bottom' });
+    });
+}
+
+//create a 'listener' which waits for changes to the values inside the firebaseOrdersCollection (gallery.html - trends)
+firebaseOrdersCollection.on('value',function(trends){
+
+    //create an empty string that will hold our new HTML
+    var allOrdersHtml = "";
+
+    //this is saying foreach order do the following function...
+    trends.forEach(function(firebaseOrderReference){
+
+        //this gets the actual data (JSON) for the order.
+        var trends = firebaseOrderReference.val();
+        console.log(trends); //check your console to see it!
+
+        //create html for the individual order
+        var individialOrderHtml =   `<div class='work__container2'>
+                        <img src="`+trends.img+`" alt="`+trends.title+`">
+                        <h2>`+trends.title+`</h2>
+                    </div>`;
+
+        //add the individual order html to the end of the allOrdersHtml list
+        allOrdersHtml = allOrdersHtml + individialOrderHtml;
+    });
+
+    //actually put the html on the page inside the element with the id PreviousOrders
+    $('.work2__container').html(allOrdersHtml);
+
+    // Initialize ScrollReveal for the dynamically loaded images AFTER they are in the DOM
+    animateTrendsImages();
+    sr.reveal('.work2__container', { origin: 'left' }); // Initial reveal of the container
+});
+
+
+
+
+/* for displaying professionals (team.html) */
+var firebaseProsCollection = database.ref().child('pros');
+
+firebaseProsCollection.on('value',function(pros){
+    var allProsHtml = "";
+    pros.forEach(function(firebaseProReference){
+        var pros = firebaseProReference.val();
+        var individialProHtml = `<div class='work__container4'>
+                                    <img src="`+pros.img+`">
+                                    <h2> `+pros.title+`</h2>
+                                    <p> `+pros.desc+`</p>
+                                </div>`;
+        allProsHtml = allProsHtml + individialProHtml;
+    });
+    $('.work4__container').html(allProsHtml);
+    animateTeamMembers(); // Animate team members after loading
+    sr.reveal('.work4__container', { origin: 'left' }); // Initial reveal of the container
+});
+
+
+
+
+
+
+/* for displaying testimonials (testimonials.html) */
+var firebaseTestsCollection = database.ref().child('tests');
+const testimonialsContainer = document.getElementById('testimonials-data');
+const testimonialTemplate = document.getElementById('testimonial-template');
+
+// Function to initialize ScrollReveal for testimonials
+function animateTestimonials() {
+    const testimonialCards = testimonialsContainer.querySelectorAll('.testimonial__card');
+    testimonialCards.forEach((card, index) => {
+        sr.reveal(card, { delay: 200 * (index + 1), origin: 'bottom' });
+    });
+}
+
+// Listen for changes in the 'tests' data in Firebase
+firebaseTestsCollection.on('value', function(snapshot) {
+    testimonialsContainer.innerHTML = ''; // Clear any existing content (including loading spinner)
+    const testsData = snapshot.val();
+
+    if (testsData) {
+        Object.values(testsData).forEach(test => {
+            // Clone the template
+            const testimonialCard = testimonialTemplate.content.cloneNode(true);
+
+            // Populate the cloned template with data
+            const testimonialTextElement = testimonialCard.querySelector('[data-testimonial-text]');
+            const testimonialNameElement = testimonialCard.querySelector('[name]');
+
+            if (testimonialTextElement) {
+                testimonialTextElement.textContent = test.text || ''; // Assuming 'text' field in Firebase
+            }
+            if (testimonialNameElement) {
+                testimonialNameElement.textContent = test.name || ''; // Assuming 'name' field in Firebase
+            }
+
+            // Append the populated card to the container
+            testimonialsContainer.appendChild(testimonialCard);
+        });
+
+        // Initialize ScrollReveal for the loaded testimonials
+        animateTestimonials();
+        sr.reveal('.testimonials__container', { origin: 'bottom' }); // Initial reveal of the main container
+    } else {
+        testimonialsContainer.textContent = 'No testimonials available.';
+    }
+});
+
+
+
+
+// sticky threshold
 const stickyContactThreshold = 10;
 const stickyButton = document.getElementById('sticky-contact');
 const stickyButtonCloneId = 'sticky-contact-clone';
@@ -83,6 +244,7 @@ function getCurrentScreenDimensions() {
 	};
 	return viewportDimensions;
 }
+
 
 // Function to display the contact options dialog
 function showContactOptions(event) {
@@ -231,64 +393,3 @@ window.addEventListener('resize', function() {
 		clonedStickyButton.style.transform = 'translate('+(screenDimensions.width.viewportWidth-currentStickyButtonPosition.left-currentStickyButtonPosition.width-50)+'px,'+(screenDimensions.height.viewportHeight-stickyContactThreshold-currentStickyButtonPosition.height-35)+'px)';
 	}
 });
-
-
-        // ... your existing JavaScript ...
-
-        const homeImage = document.getElementById('home-image-slide');
-        const images = [
-            'assets/img/work1.jpg',
-            'assets/img/work2.jpg',
-            'assets/img/openview.jpg',
-            'assets/img/oifn.jpg',
-            'assets/img/wof.jpg',
-            'assets/img/hello2.jpg',
-            'assets/img/blue.jpg'
-                    ];
-        let currentImageIndex = 0;
-
-        function changeHomeImage() {
-            currentImageIndex = (currentImageIndex + 1) % images.length;
-            homeImage.src = images[currentImageIndex];
-        }
-
-        // Change the image every 3 seconds (adjust as needed)
-        setInterval(changeHomeImage, 3000);
-
-
-// ... your existing JavaScript ...
-
-// NGO Programs Modal Logic
-const programItems = document.querySelectorAll('.program__item');
-const modal = document.getElementById('programModal');
-const modalTitle = document.getElementById('modal-title');
-const modalDescription = document.getElementById('modal-description');
-const closeButton = document.querySelector('.close-button');
-
-const programDescriptions = {
-    'Community Outreach': 'Our Community Outreach program focuses on bringing therapy services and awareness to underserved populations through workshops, health fairs, and collaborations with local organizations.',
-    'Subsidized Therapy': 'We believe everyone deserves access to therapy. Our Subsidized Therapy program provides reduced-cost or free therapy sessions to individuals and families facing financial constraints, ensuring they receive the support they need.',
-    'Mass Assessment': 'Through our Mass Assessment initiatives, we conduct large-scale screenings and evaluations to identify individuals with developmental or physical challenges early on, facilitating timely intervention and support.',
-    'Inter-state Outreach': 'Expanding our reach beyond our immediate location, the Inter-state Outreach program aims to provide therapy services and training to communities in other states, addressing the disparities in access to specialized care.'
-};
-
-programItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const programName = item.querySelector('.program__title-overlay').textContent;
-        modalTitle.textContent = programName;
-        modalDescription.textContent = programDescriptions[programName];
-        modal.style.display = 'block';
-    });
-});
-
-closeButton.addEventListener('click', () => {
-    modal.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-});
-
-
